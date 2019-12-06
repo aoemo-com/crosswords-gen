@@ -135,7 +135,6 @@ while True:
     # 奖励单词命中
     elif input_word in current_level.bonus_words and input_word not in current_level.finished_bonus_words:
         current_level.finished_bonus_words.append(input_word)
-    # /help
     elif input_line == "/help":
         print("")
         print("Commands:")
@@ -149,16 +148,12 @@ while True:
         print("Lower case:      /lower")
         print("Capital case:    /capital")
         input_func("\nPress ENTER to continue...")
-    # /quit
     elif input_line == "/quit":
         exit()
-    # /shuffle
     elif input_line == "/shuffle":
         random.shuffle(current_level.chars)
-    # /show
     elif input_line in ("/show", "/hide"):
         show_answer = input_line == "/show"
-    # /skip
     elif input_line.startswith("/skip"):
         skip_level = 1
         params = input_line[5:].strip().split(" ")
@@ -169,6 +164,5 @@ while True:
         current_level_index = min(current_level_index, len(levels) - 1)
         print("Enter level %d..." % (current_level_index + 1))
         time.sleep(1.0)
-    # /upper /lower /capital
     elif input_line in ("/upper", "/lower", "/capital"):
         case = input_line[1:]
