@@ -43,9 +43,10 @@ with open(LEVELS_FILE_PATH) as levels_file:
 
         guess_words_count = int(columns[5])
         all_words_count = int(columns[6])
-        seed_word = columns[7]
+        seed_word = columns[7].strip()
 
-        all_words = [seed_word] + columns[16: 16 + all_words_count - 1]
+        all_words = [seed_word] + \
+                    [word.strip() for word in columns[16].split(";") if word.strip()]
         words = all_words[:guess_words_count]
         bonus_words = all_words[guess_words_count:]
 

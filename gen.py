@@ -137,7 +137,8 @@ def gen_lang(lang, queue):
                                          "",  # 数量系数
                                          "",  # 长度系数
                                          "",  # 难度系数
-                                     ] + words
+                                         ";".join(words),  # 其他词
+                                     ]
                     output_columns = [str(_) for _ in output_columns]
                     output_file.write(",".join(output_columns) + "\n")
                     print("\t".join([
