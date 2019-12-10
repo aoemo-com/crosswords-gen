@@ -39,10 +39,11 @@ def gen_lang(lang, queue):
                     if lower_word in words_set:
                         continue
                     words_set.add(lower_word)
-                    words.append((lower_word, freq))
+                    words.append(lower_word)
                     freq += 1
             return words
 
+        # 全部单词, list(str)
         all_words = init_words()
 
         def gen_levels(
@@ -62,7 +63,8 @@ def gen_lang(lang, queue):
             seed_words = all_words[:words_max_freq]
             # 长度限制
             seed_words = [
-                (word, _) for word, _ in seed_words if seed_word_max_len >= len(word) >= max(3, gen_words_min_len)
+                (word, i + 1) for i, word in enumerate(seed_words)
+                if seed_word_max_len >= len(word) >= max(3, gen_words_min_len)
             ]
             # 重复限制
             seed_words = [(word, _) for word, _ in seed_words if word not in used_seed_words]
@@ -95,7 +97,7 @@ def gen_lang(lang, queue):
             filtered_words = all_words[:words_max_freq]
             # 长度限制
             filtered_words = [
-                (word, _) for word, _ in filtered_words
+                (word, i + 1) for i, word in enumerate(filtered_words)
                 if seed_word_max_len >= len(word) >= gen_words_min_len
             ]
             filtered_words_chars_count = {
