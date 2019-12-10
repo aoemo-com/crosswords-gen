@@ -13,10 +13,8 @@ if python_version < (3, 0):
 else:
     input_func = input
 
-# 语言
-LANGUAGE = "EN"
 # 关卡配置文件
-LEVELS_FILE_PATH = "%s.csv" % LANGUAGE
+LEVELS_FILE_PATH = "EN.csv"
 
 # 等级信息
 Level = namedtuple(
@@ -44,12 +42,10 @@ with open(LEVELS_FILE_PATH) as levels_file:
         guess_words_count = int(columns[5])
         all_words_count = int(columns[6])
         seed_word = columns[7].strip()
-
         all_words = [seed_word] + \
                     [word.strip() for word in columns[16].split(";") if word.strip()]
         words = all_words[:guess_words_count]
         bonus_words = all_words[guess_words_count:]
-
         chars = [char for char in seed_word]
         random.shuffle(chars)
         levels.append(
@@ -58,10 +54,8 @@ with open(LEVELS_FILE_PATH) as levels_file:
 
 # 当前等级
 current_level_index = 0
-# 显示答案
-show_answer = False
 # 大小写方式
-case = "upper"
+case = "lower"
 
 while True:
 
@@ -70,50 +64,35 @@ while True:
 
     def change_case(string):
         """根据case进行显示"""
-        if case == "upper":
-            return string.upper()
-        elif case == "lower":
-            return string.lower()
-        elif case == "capital":
-            return string.capitalize()
-        return string
-
-    def clear_screen():
-        """清屏"""
-        if os.name == 'nt':
-            os.system('cls')
-        else:
-            os.system('clear')
+        return string.upper() if case == "upper" else string.lower()
 
 
     def print_level():
         """打印当前等级信息"""
-        clear_screen()
+        os.system(("clear", "cls")[os.name == "nt"])
+        # 猜词
         print("")
         for word in current_level.words:
-            if word in current_level.finished_words or show_answer:
+            if word in current_level.finished_words:
                 print(change_case(word))
             else:
                 print("*" * len(word))
-
-        status = "Stage: %d/%d" % (current_level_index + 1, len(levels))
+        # 状态
+        print("")
+        print("Stage: %d/%d" % (current_level_index + 1, len(levels)))
         if current_level.bonus_words:
-            status += " BonusWords: %d/%d" % (
+            bonus_words_status = "Bonus words: %d/%d" % (
                 len(current_level.finished_bonus_words),
                 len(current_level.bonus_words)
             )
-        print(status)
-
-        if current_level.bonus_words:
-            if show_answer:
-                print("BonusWords: %s" % " ".join(
-                    change_case(word) for word in current_level.bonus_words
-                ))
-            elif current_level.finished_bonus_words:
-                print("BonusWords: %s" % " ".join(
-                    change_case(word) for word in current_level.finished_bonus_words
-                ))
-
+            bonus_words_status += " %s" % " ".join(
+                change_case(word)
+                if word in current_level.finished_bonus_words
+                else "*" * len(word)
+                for word in current_level.bonus_words
+            )
+            print(bonus_words_status)
+        # 字母盘
         print("")
         print("Chars: %s" % " ".join(change_case(char) for char in current_level.chars))
         print("")
@@ -122,7 +101,7 @@ while True:
     print_level()
 
     # 输入
-    print("Input /help for help.")
+    print("Input ? for help.")
     input_line = input_func("Input: ").strip()
 
     input_word = input_line.lower()
@@ -136,25 +115,21 @@ while True:
     # 奖励单词命中
     elif input_word in current_level.bonus_words and input_word not in current_level.finished_bonus_words:
         current_level.finished_bonus_words.append(input_word)
-    elif input_line == "/help":
+    elif input_line == "?":
         print("")
         print("Commands:")
-        print("Quit:            /quit")
+        print("")
+        print("Shuffle chars:   /shuffle")
+        print("Lower case:      /lower")
+        print("Upper case:      /upper")
         print("Skip level:      /skip")
         print("Skip ### level:  /skip ###")
-        print("Shuffle chars:   /shuffle")
-        print("Show answer:     /show")
-        print("Hide answer:     /hide")
-        print("Upper case:      /upper")
-        print("Lower case:      /lower")
-        print("Capital case:    /capital")
-        input_func("\nPress ENTER to continue...")
-    elif input_line == "/quit":
-        exit()
+        print("")
+        input_func("Press ENTER to continue...")
     elif input_line == "/shuffle":
         random.shuffle(current_level.chars)
-    elif input_line in ("/show", "/hide"):
-        show_answer = input_line == "/show"
+    elif input_line in ("/upper", "/lower"):
+        case = input_line[1:]
     elif input_line.startswith("/skip"):
         skip_level = 1
         params = input_line[5:].strip().split(" ")
@@ -165,5 +140,4 @@ while True:
         current_level_index = min(current_level_index, len(levels) - 1)
         print("Enter level %d..." % (current_level_index + 1))
         time.sleep(1.0)
-    elif input_line in ("/upper", "/lower", "/capital"):
-        case = input_line[1:]
+
