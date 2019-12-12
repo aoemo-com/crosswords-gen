@@ -3,7 +3,7 @@
 
 
 class Rect(object):
-    def __init__(self, left, top, right, bottom):
+    def __init__(self, left=0, top=0, right=1, bottom=1):
         assert isinstance(left, int) and \
                isinstance(top, int) and \
                isinstance(right, int) and \
@@ -117,7 +117,7 @@ class CrosswordLayout(object):
         assert len(self.words) >= layout_count
 
         # 矩形范围
-        self.rect = Rect(0, 0, 1, 1)
+        self.rect = Rect()
         # 单词排列
         self.word_layouts = {}
         # 在矩形区域相连的外部找排列位置的当前方位索引
@@ -351,7 +351,7 @@ if __name__ == "__main__":
 
             guess_word_count = int(columns[5])
             seed_word = columns[7].strip()
-            the_other_words = [word.strip() for word in columns[16].split(";") if word.strip()]
+            the_other_words = [_word.strip() for _word in columns[16].split(";") if _word.strip()]
             levels.append(
                 Level(level, guess_word_count, seed_word, the_other_words)
             )
