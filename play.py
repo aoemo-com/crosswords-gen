@@ -7,6 +7,8 @@ import time
 import os
 import sys
 
+from layout import CrosswordLayout
+
 python_version = sys.version_info
 if python_version < (3, 0):
     input_func = raw_input
@@ -24,6 +26,7 @@ Level = namedtuple(
         "chars",
         "words",
         "bonus_words",
+        "layout",
         "finished_words",
         "finished_bonus_words",
     ]
@@ -31,6 +34,7 @@ Level = namedtuple(
 
 # 所有等级
 levels = []
+print("loading levels...")
 # 等级初始化
 with open(LEVELS_FILE_PATH) as levels_file:
     for level, line in enumerate(levels_file):
@@ -40,17 +44,20 @@ with open(LEVELS_FILE_PATH) as levels_file:
         columns = line.split(",")
 
         guess_words_count = int(columns[5])
-        all_words_count = int(columns[6])
         seed_word = columns[7].strip()
-        all_words = [seed_word] + \
-                    [word.strip() for word in columns[16].split(";") if word.strip()]
-        words = all_words[:guess_words_count]
-        bonus_words = all_words[guess_words_count:]
+        other_words = [word.strip() for word in columns[16].split(";") if word.strip()]
+
+        layout = CrosswordLayout(guess_words_count, seed_word, other_words)
+        words = layout.layout_words()
+        all_words = [seed_word] + other_words
+        bonus_words = [word for word in all_words if word not in words]
         chars = [char for char in seed_word]
         random.shuffle(chars)
         levels.append(
-            Level(level, chars, words, bonus_words, [], [])
+            Level(level, chars, words, bonus_words, layout, [], [])
         )
+        if level % 100 == 0:
+            print(level)
 
 # 当前等级
 current_level_index = 0
@@ -72,11 +79,17 @@ while True:
         os.system(("clear", "cls")[os.name == "nt"])
         # 猜词
         print("")
-        for word in current_level.words:
-            if word in current_level.finished_words:
-                print(change_case(word))
-            else:
-                print("*" * len(word))
+
+        def word_rewrite(word):
+            if word not in current_level.finished_words:
+                return "*" * len(word)
+            return word
+
+        current_level.layout.print_layout(
+            word_rewrite,
+            set(current_level.words) - set(current_level.finished_words),
+        )
+
         # 状态
         print("")
         print("Stage: %d/%d" % (current_level_index + 1, len(levels)))
@@ -140,4 +153,3 @@ while True:
         current_level_index = min(current_level_index, len(levels) - 1)
         print("Enter level %d..." % (current_level_index + 1))
         time.sleep(1.0)
-
