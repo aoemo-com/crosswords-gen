@@ -2,14 +2,10 @@
 # -*- coding:utf-8 -*-
 
 
-class Rect(object):
+class IntRect(object):
+    """整数矩形, [左, 右), [上, 下) 半开区间"""
+
     def __init__(self, left=0, top=0, right=1, bottom=1):
-        assert isinstance(left, int) and \
-               isinstance(top, int) and \
-               isinstance(right, int) and \
-               isinstance(bottom, int) and \
-               left < right and \
-               top < bottom
         self.left = left
         self.top = top
         self.right = right
@@ -24,7 +20,7 @@ class Rect(object):
         return self.bottom - self.top
 
     def __contains__(self, point):
-        """点是否在矩形内"""
+        """点是否在范围内"""
         x, y = point
         return self.left <= x < self.right and self.top <= y < self.bottom
 
@@ -42,19 +38,19 @@ class Rect(object):
                ((self.top <= other.top < self.bottom) or (other.top <= self.top < other.bottom))
 
     def intersect(self, other):
-        """交集"""
+        """求交集"""
         min_right = min(self.right, other.right)
         min_bottom = min(self.bottom, other.bottom)
         if self.left <= other.left < self.right:
             if self.top <= other.top < self.bottom:
-                return Rect(other.left, other.top, min_right, min_bottom)
+                return IntRect(other.left, other.top, min_right, min_bottom)
             elif other.top <= self.top < other.bottom:
-                return Rect(other.left, self.top, min_right, min_bottom)
+                return IntRect(other.left, self.top, min_right, min_bottom)
         elif other.left <= self.left < other.right:
             if self.top <= other.top < self.bottom:
-                return Rect(self.left, other.top, min_right, min_bottom)
+                return IntRect(self.left, other.top, min_right, min_bottom)
             elif other.top <= self.top < other.bottom:
-                return Rect(self.left, self.top, min_right, min_bottom)
+                return IntRect(self.left, self.top, min_right, min_bottom)
 
     def spiral_iterate(self, callback, *args, **kwargs):
         """从中心螺旋向外访问回调"""
@@ -82,7 +78,7 @@ class CrosswordLayout(object):
             # 是否水平方向
             self.horizontal = horizontal
             # 矩形范围
-            self.rect = Rect(
+            self.rect = IntRect(
                 x, y,
                 x + [1, len(self.word)][horizontal],
                 y + [len(self.word), 1][horizontal],
@@ -92,7 +88,7 @@ class CrosswordLayout(object):
             """输出到二维数组内"""
             word = self.word
             if word_rewrite_callback:
-                word = word_rewrite_callback(self.word)
+                word = word_rewrite_callback(word)
             for char in word:
                 board[y][x] = char
                 x += [0, 1][self.horizontal]
@@ -100,8 +96,9 @@ class CrosswordLayout(object):
 
         def __getitem__(self, point):
             """取得坐标上的字符"""
+            if point not in self.rect:
+                return None
             x, y = point
-            assert (x, y) in self.rect
             offset = [y - self.rect.top, x - self.rect.left][self.horizontal]
             return self.word[offset]
 
@@ -110,16 +107,15 @@ class CrosswordLayout(object):
         assert layout_count >= 2
         self.layout_count = layout_count
         # 词表: 关键词排第一位, 其他按长度从大到小
-        self.words = []
+        self.words = sorted(other_words, key=len, reverse=True)
         if key_word:
-            self.words += [key_word]
-        self.words += sorted(other_words, key=len, reverse=True)
+            self.words[:0] = [key_word]
         assert len(self.words) >= layout_count
 
         # 矩形范围
-        self.rect = Rect()
-        # 单词排列
-        self.word_layouts = {}
+        self.rect = IntRect()
+        # 单词排列 [WordLayout]
+        self.word_layouts = []
         # 在矩形区域相连的外部找排列位置的当前方位索引
         self.connected_layout_pos = 0
         # 在矩形区域不相连的外部找排列位置的当前方位索引
@@ -130,12 +126,12 @@ class CrosswordLayout(object):
 
     def layout_words(self):
         """返回排列好的单词"""
-        return self.word_layouts.keys()
+        return [layout.word for layout in self.word_layouts]
 
     def add_word_layout(self, word, x, y, horizontal=True):
         """增加一个单词排列"""
         layout = self.WordLayout(word, x, y, horizontal)
-        self.word_layouts[word] = layout
+        self.word_layouts.append(layout)
         self.rect |= layout.rect
 
     def can_word_layout(self, word, x, y, horizontal=True, insert=True):
@@ -146,19 +142,19 @@ class CrosswordLayout(object):
         # 危险矩形区域的 左上右下 偏移
         danger_rectangles = [
             [
-                Rect(rect.left + 0, rect.top - 1, rect.right + 0, rect.bottom + 1),
-                Rect(rect.left - 1, rect.top + 0, rect.right + 1, rect.bottom + 0),
+                IntRect(rect.left + 0, rect.top - 1, rect.right + 0, rect.bottom + 1),
+                IntRect(rect.left - 1, rect.top + 0, rect.right + 1, rect.bottom + 0),
             ],
             [
-                Rect(rect.left - 1, rect.top + 0, rect.right + 1, rect.bottom + 0),
-                Rect(rect.left + 0, rect.top - 1, rect.right + 0, rect.bottom + 1),
+                IntRect(rect.left - 1, rect.top + 0, rect.right + 1, rect.bottom + 0),
+                IntRect(rect.left + 0, rect.top - 1, rect.right + 0, rect.bottom + 1),
             ]
         ][horizontal]
 
         # 同一个方向上的检测 #####################
         # 如果是水平方向, 不能和危险区域上的其他(水平/垂直)单词有矩形区域冲突
         # 垂直方向也类似
-        for word_layout in self.word_layouts.values():
+        for word_layout in self.word_layouts:
             for danger_rect in danger_rectangles:
                 # 不插入则水平/垂直单词都检测
                 # 插入直检测同向单词
@@ -170,8 +166,8 @@ class CrosswordLayout(object):
 
         # 插入方式, 需要对另外一个方向上的单词进行检测
         # 另一个方向上的检测 #####################
-        for word_layout in self.word_layouts.values():
-            # 不同向的跳过
+        for word_layout in self.word_layouts:
+            # 同向的跳过
             if word_layout.horizontal == horizontal:
                 continue
             word_rect = word_layout.rect
@@ -193,11 +189,11 @@ class CrosswordLayout(object):
         # 在矩形区域内找位置, 从里到外螺旋旋转
         def spiral_callback(_x, _y):
             """螺旋旋转迭代位置回调"""
-            # 先水平排列测试
+            # 先水平
             if self.can_word_layout(word, _x, _y, insert=False):
                 self.add_word_layout(word, _x, _y)
                 return True
-            # 再垂直排列测试
+            # 再垂直
             if self.can_word_layout(word, _x, _y, False, insert=False):
                 self.add_word_layout(word, _x, _y, False)
                 return True
@@ -249,7 +245,8 @@ class CrosswordLayout(object):
 
         # 插入 ###############################
         # 检测每个已经排列的单词与新单词的相同字母和双方对应的索引
-        for layout_word, layout in self.word_layouts.items():
+        for layout in self.word_layouts:
+            layout_word = layout.word
             horizontal = layout.horizontal
             rect = layout.rect
             for offset1, char1 in enumerate(word):
@@ -313,10 +310,14 @@ class CrosswordLayout(object):
         # 先打印隐藏的
         words = list(prior_words)
         # 再打印显示的
-        words += [word for word in self.word_layouts if word not in words]
+        words += [word for word in self.layout_words() if word not in words]
+        # {单词: 排列}
+        word_layouts_dict = {
+            layout.word: layout for layout in self.word_layouts
+        }
 
         for word in words:
-            layout = self.word_layouts[word]
+            layout = word_layouts_dict[word]
             # 坐标转换到二维数组上
             board_x = layout.rect.left - self.rect.left + board_margin
             board_y = layout.rect.top - self.rect.top + board_margin
@@ -356,9 +357,11 @@ if __name__ == "__main__":
                 Level(level, guess_word_count, seed_word, the_other_words)
             )
 
+
     def word_rewrite(word):
         # return "*" * len(word)
         return word
+
 
     if 1:
         start = time.time()
