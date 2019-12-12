@@ -204,40 +204,40 @@ class CrosswordLayout(object):
             return False
 
         # 螺旋旋转迭代
-        ok = self.rect.spiral_iterate(spiral_callback)
+        if self.rect.spiral_iterate(spiral_callback):
+            return True
 
-        if not ok:
-            # 在矩形区域相连的外部4边的左、右循环(上2/右2/下2/左2)排列
-            positions = [
-                (self.rect.left, self.rect.top - 1, True),
-                (self.rect.right - len(word), self.rect.top - 1, True),
+        # 在矩形区域相连的外部4边的左、右循环(上2/右2/下2/左2)排列
+        positions = [
+            (self.rect.left, self.rect.top - 1, True),
+            (self.rect.right - len(word), self.rect.top - 1, True),
 
-                (self.rect.right, self.rect.top, False),
-                (self.rect.right, self.rect.bottom - len(word), False),
+            (self.rect.right, self.rect.top, False),
+            (self.rect.right, self.rect.bottom - len(word), False),
 
-                (self.rect.right - len(word), self.rect.bottom, True),
-                (self.rect.left, self.rect.bottom, True),
+            (self.rect.right - len(word), self.rect.bottom, True),
+            (self.rect.left, self.rect.bottom, True),
 
-                (self.rect.left - 1, self.rect.bottom - len(word), False),
-                (self.rect.left - 1, self.rect.top, False),
-            ]
-            for _ in range(len(positions)):
-                x, y, horizontal = positions[self.connected_layout_pos % len(positions)]
-                self.connected_layout_pos += 1
-                if self.can_word_layout(word, x, y, horizontal):
-                    self.add_word_layout(word, x, y, horizontal)
-                    break
-            else:
-                # 在矩形区域不相连的外部4边循环(上/右/下/左)排列
-                positions = [
-                    (self.rect.left, self.rect.top - 2, True),
-                    (self.rect.right + 1, self.rect.top, False),
-                    (self.rect.left, self.rect.bottom + 1, True),
-                    (self.rect.left - 2, self.rect.top, False),
-                ]
-                x, y, horizontal = positions[self.outside_layout_pos % len(positions)]
-                self.outside_layout_pos += 1
+            (self.rect.left - 1, self.rect.bottom - len(word), False),
+            (self.rect.left - 1, self.rect.top, False),
+        ]
+        for _ in range(len(positions)):
+            x, y, horizontal = positions[self.connected_layout_pos % len(positions)]
+            self.connected_layout_pos += 1
+            if self.can_word_layout(word, x, y, horizontal):
                 self.add_word_layout(word, x, y, horizontal)
+                break
+        else:
+            # 在矩形区域不相连的外部4边循环(上/右/下/左)排列
+            positions = [
+                (self.rect.left, self.rect.top - 2, True),
+                (self.rect.right + 1, self.rect.top, False),
+                (self.rect.left, self.rect.bottom + 1, True),
+                (self.rect.left - 2, self.rect.top, False),
+            ]
+            x, y, horizontal = positions[self.outside_layout_pos % len(positions)]
+            self.outside_layout_pos += 1
+            self.add_word_layout(word, x, y, horizontal)
         return True
 
     def layout_word(self, word, insert=True):
