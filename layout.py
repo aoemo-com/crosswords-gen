@@ -363,12 +363,13 @@ if __name__ == "__main__":
         return word
 
 
-    if 1:
-        start = time.time()
-        for level in levels:
-            print(level.level)
-            CrosswordLayout(level.count, level.seed_word, level.other_words).print_layout(word_rewrite)
-        print("finished in %.3fs" % (time.time() - start))
-    else:
-        level = levels[23]
+    start = time.time()
+    for level in levels:
+        print(level.level)
         CrosswordLayout(level.count, level.seed_word, level.other_words).print_layout(word_rewrite)
+    print("finished in %.3fs" % (time.time() - start))
+
+    """
+    level = levels[23]
+    CrosswordLayout(level.count, level.seed_word, level.other_words).print_layout(word_rewrite)
+    """
