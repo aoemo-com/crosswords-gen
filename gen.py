@@ -123,24 +123,24 @@ def gen_lang(lang, queue):
                 if len(words) + 1 >= arrange_word_cnt:
                     used_seed_words.add(seed_word)
                     output_columns = [
-                                         batch_level,  # 批号
-                                         start_level + level_count,  # 序号
-                                         gen_words_min_len,  # 参:最小长度
-                                         seed_word_max_len,  # 参:最大长度
-                                         words_max_freq,  # 参:词频上限
-                                         arrange_word_cnt,  # 参:猜词数
-                                         len(words) + 1,  # 全部词数
-                                         seed_word,  # 种子词
-                                         seed_word_freq,  # 种子词频率
-                                         len(seed_word),  # 种子词长度
-                                         sum_freq,  # 其他词总频率
-                                         sum(len(word) for word in words),  # 其他词总长度
-                                         "",  # 频率系数
-                                         "",  # 数量系数
-                                         "",  # 长度系数
-                                         "",  # 难度系数
-                                         ";".join(words),  # 其他词
-                                     ]
+                        batch_level,  # 批号
+                        start_level + level_count,  # 序号
+                        gen_words_min_len,  # 参:最小长度
+                        seed_word_max_len,  # 参:最大长度
+                        words_max_freq,  # 参:词频上限
+                        arrange_word_cnt,  # 参:猜词数
+                        len(words) + 1,  # 全部词数
+                        seed_word,  # 种子词
+                        seed_word_freq,  # 种子词频率
+                        len(seed_word),  # 种子词长度
+                        sum_freq,  # 其他词总频率
+                        sum(len(word) for word in words),  # 其他词总长度
+                        "",  # 频率系数
+                        "",  # 数量系数
+                        "",  # 长度系数
+                        "",  # 难度系数
+                        ";".join(words),  # 其他词
+                    ]
                     output_columns = [str(_) for _ in output_columns]
                     output_file.write(",".join(output_columns) + "\n")
                     print("\t".join([
