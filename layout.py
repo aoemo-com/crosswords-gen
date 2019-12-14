@@ -36,6 +36,15 @@ class IntRect(object):
         self.bottom = max(self.bottom, other.bottom)
         return self
 
+    def __or__(self, other):
+        """合并返回新矩形"""
+        return IntRect(
+            min(self.left, other.left),
+            min(self.top, other.top),
+            max(self.right, other.right),
+            max(self.bottom, other.bottom),
+        )
+
     def __and__(self, other):
         """是否有交集"""
         return not (
@@ -77,7 +86,7 @@ class CrosswordLayout(object):
     class WordLayout(object):
         """单词排列"""
 
-        def __init__(self, word, x=0, y=0, horizontal=True):
+        def __init__(self, word, x, y, horizontal):
             # 单词
             self.word = word
             # 是否水平方向
@@ -109,42 +118,69 @@ class CrosswordLayout(object):
             common = self.rect.intersect(other.rect)
             return common and self[common.left, common.top] == other[common.left, common.top]
 
-    def __init__(self, layout_count, key_word, other_words):
-        # 数量
+    def __init__(
+            self,
+            layout_count,  # 需要排列的数量
+            key_word,  # 必须排列的关键单词
+            other_words,  # 其他可选单词
+            max_width=0,  # 最大宽度(默认无限制)
+            max_height=0  # 最大高度(默认无限制)
+    ):
+        # 需要排列的数量
         assert layout_count >= 2
         self.layout_count = layout_count
-        # 词表: 关键词排第一位, 其他按长度从大到小
+        # 词表: 关键单词排第一位, 其他按长度从大到小
         self.words = sorted(other_words, key=len, reverse=True)
         if key_word:
             self.words[:0] = [key_word]
         assert len(self.words) >= layout_count
 
+        # 矩形范围的宽高限制
+        assert \
+            isinstance(max_width, int) and \
+            isinstance(max_height, int) and \
+            max_width >= 0 and \
+            max_height >= 0 and \
+            "max_width:%d or max_height:%d invalid!" % (max_width, max_height)
+        self.rect_max_width = max_width
+        self.rect_max_height = max_height
+        # 实际宽高限制
+        self._real_rect_max_width = max_width or 999999999
+        self._real_rect_max_height = max_height or 999999999
+
         # 全部单词排列的最大矩形范围
         self.rect = IntRect()
+
         # 单词排列 [WordLayout]
         self.word_layouts = []
-        # 在矩形区域相连的外部找排列位置的当前(顺时针)方位循环索引
-        self.connected_layout_pos = 0
-        # 在矩形区域不相连的外部找排列位置的当前(顺时针)方位循环索引
-        self.outside_layout_pos = 0
 
-        # 排列
+        # 在矩形区域外部找排列位置的当前(顺时针)方位循环索引
+        # 0.同向: 水平方向水平排, 垂直方向垂直排, 与矩形相连接
+        # 1.同向: 水平方向水平排, 垂直方向垂直排, 与矩形不相连
+        # 2.反向: 水平方向垂直排, 垂直方向水平排, 与矩形不相连
+        self.outside_layout_poses = [0, 0, 0]
+
         self.layout()
 
     def layout_words(self):
         """返回排列好的单词"""
         return [word_layout.word for word_layout in self.word_layouts]
 
-    def add_word_layout(self, word_layout):
-        """增加一个单词排列"""
-        self.word_layouts.append(word_layout)
-        self.rect |= word_layout.rect
-
     def check_and_add_word_layout(self, word, x, y, horizontal, insert_layout=None):
         """测试单词是否可以排入，可以则排入"""
         word_layout = self.WordLayout(word, x, y, horizontal)
+
+        # 有高宽限制
+        if self.rect_max_width or self.rect_max_height:
+            # 如果合并后超过了高宽限制: 失败
+            new_rect = self.rect | word_layout.rect
+            if new_rect.width > self._real_rect_max_width or \
+                    new_rect.height > self._real_rect_max_height:
+                return False
+
         if self.check_word_layout(word_layout, insert_layout):
-            self.add_word_layout(word_layout)
+            self.word_layouts.append(word_layout)
+            self.rect |= word_layout.rect
             return True
         return False
 
@@ -221,37 +257,45 @@ class CrosswordLayout(object):
                     self.check_and_add_word_layout(word, x, y, False):
                 return True
 
-        # 在矩形区域相连的外部4边的左、右循环(上2/右2/下2/左2)排列
-        positions = [
-            (self.rect.left, self.rect.top - 1, True),
-            (self.rect.right - len(word), self.rect.top - 1, True),
+        # 在矩形区域相连的外部4边循环排列
+        positions_array = [
+            # 0.同向: 水平方向水平排, 垂直方向垂直排, 与矩形相连
+            [
+                (self.rect.left, self.rect.top - 1, True),
+                (self.rect.right - len(word), self.rect.top - 1, True),
 
-            (self.rect.right, self.rect.top, False),
-            (self.rect.right, self.rect.bottom - len(word), False),
+                (self.rect.right, self.rect.top, False),
+                (self.rect.right, self.rect.bottom - len(word), False),
 
-            (self.rect.right - len(word), self.rect.bottom, True),
-            (self.rect.left, self.rect.bottom, True),
+                (self.rect.right - len(word), self.rect.bottom, True),
+                (self.rect.left, self.rect.bottom, True),
 
-            (self.rect.left - 1, self.rect.bottom - len(word), False),
-            (self.rect.left - 1, self.rect.top, False),
-        ]
-        for _ in range(len(positions)):
-            x, y, horizontal = positions[self.connected_layout_pos % len(positions)]
-            self.connected_layout_pos += 1
-            if self.check_and_add_word_layout(word, x, y, horizontal):
-                break
-        else:
-            # 在矩形区域不相连的外部4边循环(上/右/下/左)排列
-            positions = [
+                (self.rect.left - 1, self.rect.bottom - len(word), False),
+                (self.rect.left - 1, self.rect.top, False),
+            ],
+            # 1.同向: 水平方向水平排, 垂直方向垂直排, 与矩形不相连
+            [
                 (self.rect.left, self.rect.top - 2, True),
                 (self.rect.right + 1, self.rect.top, False),
                 (self.rect.left, self.rect.bottom + 1, True),
                 (self.rect.left - 2, self.rect.top, False),
-            ]
-            x, y, horizontal = positions[self.outside_layout_pos % len(positions)]
-            self.outside_layout_pos += 1
-            self.add_word_layout(self.WordLayout(word, x, y, horizontal))
-        return True
+            ],
+            # 2.反向: 水平方向垂直排, 垂直方向水平排, 与矩形不相连
+            [
+                (self.rect.left, self.rect.top - 1 - len(word), False),
+                (self.rect.right + 1, self.rect.top, True),
+                (self.rect.left, self.rect.bottom + 1, False),
+                (self.rect.left - 1 - len(word), self.rect.top, True),
+            ],
+        ]
+        for pos_index, positions in enumerate(positions_array):
+            for _ in range(len(positions)):
+                x, y, horizontal = \
+                    positions[self.outside_layout_poses[pos_index] % len(positions)]
+                self.outside_layout_poses[pos_index] += 1
+                if self.check_and_add_word_layout(word, x, y, horizontal):
+                    return True
+        assert 0, "NOT ENOUGH max_width or max_height!"
 
     def layout_word(self, word):
         """排列一个单词, 插入"""
@@ -284,24 +328,31 @@ class CrosswordLayout(object):
         """排列"""
 
         # 第一个单词排在(0, 0)
-        self.add_word_layout(self.WordLayout(self.words[0]))
-        # 待排单词
-        words = self.words[1:]
+        first_word = self.words[0]
+        # 如果宽度不够，则转为垂直
+        assert self.check_and_add_word_layout(
+            first_word,
+            0,
+            0,
+            horizontal=self._real_rect_max_width >= len(first_word)
+        )
 
-        while len(words) > len(self.words) - self.layout_count:
+        # 待排单词
+        left_words = self.words[1:]
+        while len(left_words) > len(self.words) - self.layout_count:
             # 从待排单词里找
-            for word in words:
+            for word in left_words:
                 # 是否可以排一个插入的
                 if self.layout_word(word):
-                    words.remove(word)
+                    left_words.remove(word)
                     # 再排下一个
                     break
                 # 不行, 试下一个
             # 全部都无法插入
             else:
                 # 排一个不插入的
-                self.layout_word_not_insert(words[0])
-                words.remove(words[0])
+                self.layout_word_not_insert(left_words[0])
+                left_words.remove(left_words[0])
             # 再排下一个
 
     def print_layout(self, word_rewrite_callback=lambda word: word, prior_words=()):
@@ -320,6 +371,11 @@ class CrosswordLayout(object):
             board[-1][0] = \
             board[0][-1] = \
             board[-1][-1] = "+"
+
+        # 右上角打印宽
+        board[0][-len(str(self.rect.width)):] = str(self.rect.width)
+        board[-1][:len(str(self.rect.height))] = str(self.rect.height)
+        # 左下角打印高
 
         # 先打印隐藏的
         words = list(prior_words)
@@ -374,7 +430,13 @@ if __name__ == "__main__":
     start = time.time()
     for level in levels:
         print(level.level)
-        CrosswordLayout(level.count, level.seed_word, level.other_words).print_layout()
+        CrosswordLayout(
+            level.count,
+            level.seed_word,
+            level.other_words,
+            max_width=20,
+            max_height=30,
+        ).print_layout()
     print("finished in %.3fs" % (time.time() - start))
 
     # level = levels[4]
