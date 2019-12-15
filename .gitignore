@@ -1,6 +1,5 @@
 output/
-layout.out
-layout.out2
+layout.out*
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
