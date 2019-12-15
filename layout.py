@@ -127,8 +127,7 @@ class CrosswordLayout(object):
         assert layout_count >= 2
         self.layout_count = layout_count
         # 词表: 关键单词排第一位
-        self.words = sorted(other_words, key=len, reverse=True)
-        # self.words = list(other_words)
+        self.words = list(other_words)
         if key_word:
             self.words[:0] = [key_word]
         assert len(self.words) >= layout_count
