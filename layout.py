@@ -86,11 +86,8 @@ class CrosswordLayout(object):
         """单词排列"""
 
         def __init__(self, word, x, y, horizontal):
-            # 单词
             self.word = word
-            # 是否水平方向
             self.horizontal = horizontal
-            # 矩形范围
             self.rect = IntRect(
                 x, y,
                 x + [1, len(self.word)][horizontal],
@@ -134,10 +131,8 @@ class CrosswordLayout(object):
             max_width=0,  # 最大宽度(默认无限制)
             max_height=0  # 最大高度(默认无限制)
     ):
-        # 需要排列的数量
         assert layout_count >= 2
         self.layout_count = layout_count
-        # 词表: 关键单词排第一位
         self.words = list(other_words)
         if key_word:
             self.words[:0] = [key_word]
@@ -221,7 +216,6 @@ class CrosswordLayout(object):
                 continue
             for danger_rect in danger_rectangles:
                 if layout.rect & danger_rect:
-                    # 不插入
                     if not inserted_layout:
                         return False
                     # 插入: 同向
@@ -242,10 +236,9 @@ class CrosswordLayout(object):
                     # 插入: 反向
                     else:
                         # 旧单词可以相交
-                        # 旧单词和新单词的相交，交点字母一样
+                        # 旧单词和新单词相交，交点字母一样
                         if not (layout.can_intersect() and new_layout & layout):
                             return False
-                        # 经过相交的单词排列
                         passed_layouts.add(layout)
         return True
 
