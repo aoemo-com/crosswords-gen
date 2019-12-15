@@ -165,19 +165,19 @@ class CrosswordLayout(object):
 
     def check_and_add_word_layout(self, word, x, y, horizontal, insert_layout=None):
         """测试单词是否可以排入，可以则排入"""
-        word_layout = self.WordLayout(word, x, y, horizontal)
+        new_layout = self.WordLayout(word, x, y, horizontal)
 
         # 有高宽限制
         if self.have_rect_limit:
             # 如果合并后超过了高宽限制: 失败
-            new_rect = self.rect | word_layout.rect
+            new_rect = self.rect | new_layout.rect
             if new_rect.width > self._real_rect_max_width or \
                     new_rect.height > self._real_rect_max_height:
                 return False
 
-        if self.check_word_layout(word_layout, insert_layout):
-            self.word_layouts.append(word_layout)
-            self.rect |= word_layout.rect
+        if self.check_word_layout(new_layout, insert_layout):
+            self.word_layouts.append(new_layout)
+            self.rect |= new_layout.rect
             return True
         return False
 
