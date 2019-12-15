@@ -92,7 +92,7 @@ while True:
 
         # 状态
         print("")
-        print("Stage: %d/%d" % (current_level_index + 1, len(levels)))
+        print("Level: %d/%d" % (current_level_index + 1, len(levels)))
         if current_level.bonus_words:
             bonus_words_status = "Bonus words: %d/%d" % (
                 len(current_level.finished_bonus_words),
@@ -123,7 +123,7 @@ while True:
         current_level.finished_words.append(input_word)
         if len(current_level.finished_words) >= len(current_level.words):
             print_level()
-            input_func("Stage %d pass!\nNext level...press ENTER to continue..." % (current_level_index + 1))
+            input_func("Level %d pass!\nNext level...press ENTER to continue..." % (current_level_index + 1))
             current_level_index += 1
     # 奖励单词命中
     elif input_word in current_level.bonus_words and input_word not in current_level.finished_bonus_words:
