@@ -96,6 +96,17 @@ class CrosswordLayout(object):
                 x + [1, len(self.word)][horizontal],
                 y + [len(self.word), 1][horizontal],
             )
+            # 与其他单词相交的次数
+            self.intersect_cnt = 0
+
+        def can_intersect(self):
+            """能否与其他单词相交: 不能用满，否则单词就被隐藏了"""
+            return self.intersect_cnt + 1 < len(self.word)
+
+        def add_intersect(self, other):
+            """增加单词相交"""
+            self.intersect_cnt += 1
+            other.intersect_cnt += 1
 
         def print_layout(self, board, x, y, word_rewrite_callback):
             """输出到二维数组内"""
@@ -157,31 +168,34 @@ class CrosswordLayout(object):
         # 2.反向: 水平方向垂直排, 垂直方向水平排, 与矩形不相连
         self.outside_layout_poses = [0, 0, 0]
 
-        self.layout()
+        self.do_layout()
 
     def layout_words(self):
         """返回排列好的单词"""
-        return [word_layout.word for word_layout in self.word_layouts]
+        return [layout.word for layout in self.word_layouts]
 
-    def check_and_add_word_layout(self, word, x, y, horizontal, insert_layout=None):
+    def check_and_add_word_layout(self, word, x, y, horizontal, inserted_layout=None):
         """测试单词是否可以排入，可以则排入"""
         new_layout = self.WordLayout(word, x, y, horizontal)
 
-        # 有高宽限制
         if self.have_rect_limit:
-            # 如果合并后超过了高宽限制: 失败
             new_rect = self.rect | new_layout.rect
             if new_rect.width > self._real_rect_max_width or \
                     new_rect.height > self._real_rect_max_height:
                 return False
 
-        if self.check_word_layout(new_layout, insert_layout):
+        passed_layouts = set()  # 经过相交的单词排列
+        if self.check_word_layout(new_layout, inserted_layout, passed_layouts):
             self.word_layouts.append(new_layout)
             self.rect |= new_layout.rect
+            # 增加所有相交(插入/被插入/经过)单词排列的相交
+            if inserted_layout:
+                for layout in [inserted_layout] + list(passed_layouts):
+                    layout.add_intersect(new_layout)
             return True
         return False
 
-    def check_word_layout(self, new_layout, insert_layout=None):
+    def check_word_layout(self, new_layout, inserted_layout, passed_layouts):
         """单词是否可以排入"""
 
         new_rect = new_layout.rect
@@ -201,31 +215,38 @@ class CrosswordLayout(object):
                 IntRect(left - 1, top + 0, right + 1, bottom + 0),
             ]
         # 已有单词排列 不能和 新单词排列的危险矩形区域 有冲突
-        for word_layout in self.word_layouts:
+        for layout in self.word_layouts:
             # (插入): 跳过正在尝试插入的单词
-            if word_layout is insert_layout:
+            if layout is inserted_layout:
                 continue
             for danger_rect in danger_rectangles:
-                if word_layout.rect & danger_rect:
+                if layout.rect & danger_rect:
                     # 不插入
-                    if not insert_layout:
+                    if not inserted_layout:
                         return False
                     # 插入: 同向
-                    elif word_layout.horizontal == horizontal:
+                    elif layout.horizontal == horizontal:
                         # 像以下的情况, as应该和saw的a连在一起
                         #
                         #   was
                         #     a
                         #     w
                         #
-                        # saw和was相交
+                        # saw可以相交
+                        # saw和was的矩形相交
                         # was与危险矩形相交只有1个格子
-                        if not (word_layout.rect & insert_layout.rect and
-                                word_layout.rect.intersect(danger_rect).area() == 1):
+                        if not (inserted_layout.can_intersect() and
+                                layout.rect & inserted_layout.rect and
+                                layout.rect.intersect(danger_rect).area() == 1):
                             return False
-                    # 插入: 同向: 必须和新单词的矩形区域有交集，交点字母一样
-                    elif not (new_layout & word_layout):
-                        return False
+                    # 插入: 反向
+                    else:
+                        # 旧单词可以相交
+                        # 旧单词和新单词的相交，交点字母一样
+                        if not (layout.can_intersect() and new_layout & layout):
+                            return False
+                        # 经过相交的单词排列
+                        passed_layouts.add(layout)
         return True
 
     def layout_word_not_insert(self, word):
@@ -293,13 +314,12 @@ class CrosswordLayout(object):
                         # 根据双方索引设置插入点位置
                         x, y = (left + layout_char_index, top - char_index) if horizontal \
                             else (left - char_index, top + layout_char_index)
-                        # 测试位置是否可以插入排列, 反向
                         if self.check_and_add_word_layout(
-                                word, x, y, not horizontal, insert_layout=layout):
+                                word, x, y, not horizontal, inserted_layout=layout):
                             return True
         return False
 
-    def layout(self):
+    def do_layout(self):
         """排列"""
 
         # 第一个单词排在(0, 0), 如果宽度不够，则转为垂直
