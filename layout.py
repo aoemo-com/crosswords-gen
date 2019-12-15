@@ -5,13 +5,7 @@
 class IntRect(object):
     """整数矩形, [左, 右), [上, 下) 半开区间"""
 
-    class Invalid(Exception):
-        """矩形参数无效异常"""
-        pass
-
     def __init__(self, left=0, top=0, right=1, bottom=1):
-        if right <= left or bottom <= top:
-            raise self.Invalid()
         self.left = left
         self.top = top
         self.right = right
@@ -61,15 +55,13 @@ class IntRect(object):
 
     def intersect(self, other):
         """求交集"""
-        try:
+        if self & other:
             return IntRect(
                 max(self.left, other.left),
                 max(self.top, other.top),
                 min(self.right, other.right),
                 min(self.bottom, other.bottom)
             )
-        except self.Invalid:
-            pass
 
     def __iter__(self):
         """从中心螺旋向外迭代"""
@@ -136,6 +128,7 @@ class CrosswordLayout(object):
         self.layout_count = layout_count
         # 词表: 关键单词排第一位
         self.words = sorted(other_words, key=len, reverse=True)
+        # self.words = list(other_words)
         if key_word:
             self.words[:0] = [key_word]
         assert len(self.words) >= layout_count
