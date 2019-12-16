@@ -6,9 +6,7 @@
 from collections import namedtuple
 import random
 import time
-import os
 import sys
-import subprocess
 
 from layout import CrosswordLayout
 
@@ -73,10 +71,8 @@ while True:
         """change word case by current case"""
         return word.upper() if case == "upper" else word.lower()
 
-
     def print_level():
         """print current level information"""
-        subprocess.call(("clear", "cls")[os.name == "nt"])
         print("")
 
         def show_hide_word(word):
