@@ -72,7 +72,7 @@ class IntRect(object):
         y_offset = (self.top + self.bottom) / 2.0
         x, y, dx, dy = 0, 0, 0, -1
         # 1 round more prevents width/height NOT divided by 2
-        for i in range(max(self.width + 2, self.height + 2) ** 2):
+        for _ in range(max(self.width + 2, self.height + 2) ** 2):
             point = int(x + x_offset), int(y + y_offset)
             if point in self:
                 yield point
@@ -83,6 +83,10 @@ class IntRect(object):
 
 class CrosswordLayout(object):
     """Crossword Layout"""
+
+    class Error(Exception):
+        """Error class"""
+        pass
 
     class WordLayout(object):
         """Word layout"""
@@ -135,20 +139,24 @@ class CrosswordLayout(object):
             max_width=0,  # 0 for unlimited
             max_height=0  # 0 for unlimited
     ):
-        assert layout_count >= 2
+        if layout_count < 2:
+            raise self.Error("layout_count MUST more than 2!")
         self.layout_count = layout_count
         self.words = list(other_words)
         if key_word:
             self.words[:0] = [key_word]
-        assert len(self.words) >= layout_count
+        if len(self.words) < layout_count:
+            raise self.Error("layout_count MUST NOT more than words count!")
 
         # Width/height limit for rect
-        assert \
-            isinstance(max_width, int) and \
-            isinstance(max_height, int) and \
-            max_width >= 0 and \
-            max_height >= 0 and \
-            "max_width:%d or max_height:%d invalid!" % (max_width, max_height)
+        if not (isinstance(max_width, int) and
+                isinstance(max_height, int) and
+                max_width >= 0 and
+                max_height >= 0):
+            raise self.Error(
+                "max_width:%d or max_height:%d invalid!" % (max_width, max_height)
+            )
+
         # Have rect width/height limit or not
         self.have_rect_limit = max_width > 0 or max_height > 0
         # Real rect width/height limit
@@ -301,7 +309,7 @@ class CrosswordLayout(object):
                 self.outside_layout_poses[pos_index] += 1
                 if self.check_and_add_word_layout(word, x, y, horizontal):
                     return True
-        assert 0, "NOT ENOUGH max_width or max_height!"
+        raise self.Error("NOT ENOUGH max_width or max_height!")
 
     def layout_word(self, word):
         """Layout a word if it is insert-able"""
@@ -328,10 +336,11 @@ class CrosswordLayout(object):
         """Layout words"""
 
         # First word layout at (0, 0), vertically if width not enough
-        assert self.check_and_add_word_layout(
-            self.words[0], x=0, y=0,
-            horizontal=self._real_rect_max_width >= len(self.words[0])
-        )
+        if not self.check_and_add_word_layout(
+                self.words[0], x=0, y=0,
+                horizontal=self._real_rect_max_width >= len(self.words[0])
+        ):
+            raise self.Error("NOT ENOUGH max_width or max_height!")
 
         left_words = self.words[1:]
         while len(left_words) > len(self.words) - self.layout_count:
