@@ -8,6 +8,7 @@ import random
 import time
 import os
 import sys
+import subprocess
 
 from layout import CrosswordLayout
 
@@ -75,7 +76,7 @@ while True:
 
     def print_level():
         """print current level information"""
-        os.system(("clear", "cls")[os.name == "nt"])
+        subprocess.call(("clear", "cls")[os.name == "nt"])
         print("")
 
         def show_hide_word(word):
