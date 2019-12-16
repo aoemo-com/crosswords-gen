@@ -376,7 +376,7 @@ class CrosswordLayout(object):
         }
         for word in words:
             layout = word_layouts_dict[word]
-            # Convert coordinate to a 2D array
+            # Convert coordinate to 2D array
             board_x = layout.rect.left - self.rect.left + board_margin
             board_y = layout.rect.top - self.rect.top + board_margin
             layout.print_layout(board, board_x, board_y, word_rewrite_callback)
