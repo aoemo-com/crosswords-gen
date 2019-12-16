@@ -1,18 +1,20 @@
 #!/usr/bin/env python
 # -*- coding:utf-8 -*-
 
+# Convert keyboard languages' dictionary
+
 import json
 
 
 def pretty_dumps(d, sort_keys=True, indent=4):
-    """打印字典"""
+    """pretty dumps for dict"""
     return json.dumps(d, sort_keys=sort_keys, indent=indent, ensure_ascii=False)
 
 
 LANG = "NL"
 
 DICT_INPUT_FILE = "main_%s.combined" % LANG.lower()
-DICT_OUTPUT_FILE = f"{LANG}.csv"
+DICT_OUTPUT_FILE = "%s.csv" % LANG.upper()
 
 BASIC_CHARS = "abcdefghijklmnopqrstuvwxyz"
 EXTRA_CHARS = "äçèéêëïöü"

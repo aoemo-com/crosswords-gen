@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding:utf-8 -*-
 
-# simulator for game play
+# Simulator for game play
 
 from collections import namedtuple
 import random

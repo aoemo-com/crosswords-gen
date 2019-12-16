@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding:utf-8 -*-
 
-# layout engine
+# Layout engine
 
 
 class IntRect(object):

@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding:utf-8 -*-
 
-# generator
+# Generator
 
 import multiprocessing as mp
 import os
