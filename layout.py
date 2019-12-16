@@ -159,6 +159,7 @@ class CrosswordLayout(object):
         self.rect = IntRect()
 
         # [self.WordLayout]
+        # Layouts of words already layout
         self.word_layouts = []
 
         # Clock-wisely layout poses on the outer 4 sides of words' layouts rect
@@ -225,7 +226,7 @@ class CrosswordLayout(object):
                 if layout.rect & danger_rect:
                     if not inserted_layout:
                         return False
-                    # inserted: same direction
+                    # Inserted: same direction
                     elif layout.horizontal == horizontal:
                         # Exception:
                         #   Like the following, 'as' should connect with 'saw' in char 'a'
@@ -238,7 +239,7 @@ class CrosswordLayout(object):
                                 layout.rect & inserted_layout.rect and
                                 layout.rect.intersect(danger_rect).area() == 1):
                             return False
-                    # inserted: reversed direction
+                    # Inserted: reversed direction
                     else:
                         # Exception:
                         if not (
@@ -262,7 +263,7 @@ class CrosswordLayout(object):
         # Clock-wisely layout on the outer 4 sides of words' layouts rect
         positions_array = [
             # 0.same direction:
-            # horizontal layouts horizontally, vertical layouts vertically, connected to rect
+            #   horizontal layouts horizontally, vertical layouts vertically, connected to rect
             [
                 (self.rect.left, self.rect.top - 1, True),
                 (self.rect.right - len(word), self.rect.top - 1, True),
@@ -277,7 +278,7 @@ class CrosswordLayout(object):
                 (self.rect.left - 1, self.rect.top, False),
             ],
             # 1.same direction:
-            # horizontal layouts horizontally, vertical layouts vertically, NOT connected to rect
+            #   horizontal layouts horizontally, vertical layouts vertically, NOT connected to rect
             [
                 (self.rect.left, self.rect.top - 2, True),
                 (self.rect.right + 1, self.rect.top, False),
@@ -285,7 +286,7 @@ class CrosswordLayout(object):
                 (self.rect.left - 2, self.rect.top, False),
             ],
             # 2.reversed direction:
-            # horizontal layouts vertically, vertical layouts horizontally, NOT connected to rect
+            #   horizontal layouts vertically, vertical layouts horizontally, NOT connected to rect
             [
                 (self.rect.left, self.rect.top - 1 - len(word), False),
                 (self.rect.right + 1, self.rect.top, True),
@@ -334,12 +335,12 @@ class CrosswordLayout(object):
 
         left_words = self.words[1:]
         while len(left_words) > len(self.words) - self.layout_count:
-            # find and layout a insert-able word in words
+            # Find and layout a insert-able word in words
             for word in left_words:
                 if self.layout_word(word):
                     left_words.remove(word)
                     break
-            # can't find
+            # Can't find
             else:
                 # Layout word, WITHOUT inserted layout
                 self.layout_word_not_insert(left_words[0])
