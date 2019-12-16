@@ -227,7 +227,8 @@ class CrosswordLayout(object):
                         return False
                     # inserted: same direction
                     elif layout.horizontal == horizontal:
-                        # Like the following, 'as' should connect with 'saw' in char 'a'
+                        # Exception:
+                        #   Like the following, 'as' should connect with 'saw' in char 'a'
                         #
                         #   was
                         #     a
@@ -239,9 +240,12 @@ class CrosswordLayout(object):
                             return False
                     # inserted: reversed direction
                     else:
-                        # old layout can intersect
-                        # Old layout will intersect new layout with same char
-                        if not (layout.can_intersect() and new_layout & layout):
+                        # Exception:
+                        if not (
+                                layout.can_intersect() and
+                                # Old layout will intersect new layout with same char
+                                new_layout & layout
+                        ):
                             return False
                         passed_layouts.add(layout)
         return True
