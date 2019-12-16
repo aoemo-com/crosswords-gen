@@ -86,6 +86,7 @@ while True:
 
         current_level.layout.print_layout(
             show_hide_word,
+            # Print unfinished words first with '*'
             set(current_level.words) - set(current_level.finished_words),
         )
 
