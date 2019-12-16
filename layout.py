@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding:utf-8 -*-
 
-# Layout engine
+# Crossword Layout
 
 
 class IntRect(object):
@@ -82,7 +82,7 @@ class IntRect(object):
 
 
 class CrosswordLayout(object):
-    """Crossword Layout engine"""
+    """Crossword Layout"""
 
     class WordLayout(object):
         """Word layout"""
