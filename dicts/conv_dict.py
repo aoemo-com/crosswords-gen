@@ -4,6 +4,7 @@
 # Convert keyboard languages' dictionary
 
 import json
+import string
 
 
 def pretty_dumps(d, sort_keys=True, indent=4):
@@ -16,7 +17,7 @@ LANG = "NL"
 DICT_INPUT_FILE = "main_%s.combined" % LANG.lower()
 DICT_OUTPUT_FILE = "%s.csv" % LANG.upper()
 
-BASIC_CHARS = "abcdefghijklmnopqrstuvwxyz"
+BASIC_CHARS = string.ascii_lowercase
 EXTRA_CHARS = "äçèéêëïöü"
 ALL_CHARS = set(
     BASIC_CHARS.lower() + BASIC_CHARS.upper() +
