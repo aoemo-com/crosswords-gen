@@ -154,9 +154,12 @@ def gen_lang(lang, queue):
                     level_count += 1
                     if level_count >= need_level_count:
                         break
-            assert level_count >= need_level_count, \
-                "Level[%d-%d]: can generate %d level(s) ONLY! Need WIDER generating parameters..." % (
-                    start_level, end_level, level_count
+
+            if level_count < need_level_count:
+                raise Exception(
+                    "Level[%d-%d]: can generate %d level(s) ONLY! Need WIDER generating parameters..." % (
+                        start_level, end_level, level_count
+                    )
                 )
 
         output_filename = "output/%s.csv" % lang
@@ -165,7 +168,6 @@ def gen_lang(lang, queue):
             last_start_level = 1
             used_words = set()
             for batch, levels_conf in enumerate(conf.LEVELS):
-                assert levels_conf[0] >= last_start_level
                 gen_levels(
                     output,
                     used_words,
