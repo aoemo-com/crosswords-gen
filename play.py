@@ -1,6 +1,8 @@
 #!/usr/bin/env python
 # -*- coding:utf-8 -*-
 
+# simulator for game play
+
 from collections import namedtuple
 import random
 import time
@@ -15,10 +17,9 @@ if python_version < (3, 0):
 else:
     input_func = input
 
-# 关卡配置文件
+# levels data file
 LEVELS_FILE_PATH = "EN.csv"
 
-# 等级信息
 Level = namedtuple(
     "Level",
     [
@@ -32,10 +33,9 @@ Level = namedtuple(
     ]
 )
 
-# 所有等级
-levels = []
+all_levels = []
 print("loading levels...")
-# 等级初始化
+# initialize all levels
 with open(LEVELS_FILE_PATH) as levels_file:
     for level, line in enumerate(levels_file):
         if level == 0:
@@ -53,46 +53,45 @@ with open(LEVELS_FILE_PATH) as levels_file:
         bonus_words = [word for word in all_words if word not in words]
         chars = [char for char in seed_word]
         random.shuffle(chars)
-        levels.append(
+        all_levels.append(
             Level(level, chars, words, bonus_words, layout, [], [])
         )
         if level % 100 == 0:
             print(level)
 
-# 当前等级
 current_level_index = 0
-# 大小写方式
+# current case for word display
 case = "lower"
 
 while True:
 
-    current_level = levels[current_level_index]
+    current_level = all_levels[current_level_index]
 
 
-    def change_case(string):
-        """根据case进行显示"""
-        return string.upper() if case == "upper" else string.lower()
+    def change_case(word):
+        """change word case by current case"""
+        return word.upper() if case == "upper" else word.lower()
 
 
     def print_level():
-        """打印当前等级信息"""
+        """print current level information"""
         os.system(("clear", "cls")[os.name == "nt"])
-        # 猜词
         print("")
 
-        def word_rewrite(word):
+        def show_hide_word(word):
+            """show/hide finished/unfinished words"""
             if word not in current_level.finished_words:
                 return "*" * len(word)
             return word
 
         current_level.layout.print_layout(
-            word_rewrite,
+            show_hide_word,
             set(current_level.words) - set(current_level.finished_words),
         )
 
-        # 状态
+        # level state
         print("")
-        print("Level: %d/%d" % (current_level_index + 1, len(levels)))
+        print("Level: %d/%d" % (current_level_index + 1, len(all_levels)))
         if current_level.bonus_words:
             bonus_words_status = "Bonus words: %d/%d" % (
                 len(current_level.finished_bonus_words),
@@ -105,7 +104,8 @@ while True:
                 for word in current_level.bonus_words
             )
             print(bonus_words_status)
-        # 字母盘
+
+        # characters
         print("")
         print("Chars: %s" % " ".join(change_case(char) for char in current_level.chars))
         print("")
@@ -113,19 +113,18 @@ while True:
 
     print_level()
 
-    # 输入
     print("Input ? for help.")
     input_line = input_func("Input: ").strip()
 
     input_word = input_line.lower()
-    # 单词命中
+    # word matched
     if input_word in current_level.words and input_word not in current_level.finished_words:
         current_level.finished_words.append(input_word)
         if len(current_level.finished_words) >= len(current_level.words):
             print_level()
             input_func("Level %d pass!\nNext level...press ENTER to continue..." % (current_level_index + 1))
             current_level_index += 1
-    # 奖励单词命中
+    # bonus word matched
     elif input_word in current_level.bonus_words and input_word not in current_level.finished_bonus_words:
         current_level.finished_bonus_words.append(input_word)
     elif input_line == "?":
@@ -150,6 +149,6 @@ while True:
             skip_level = int(params[0])
         current_level_index += skip_level
         current_level_index = max(0, current_level_index)
-        current_level_index = min(current_level_index, len(levels) - 1)
+        current_level_index = min(current_level_index, len(all_levels) - 1)
         print("Enter level %d..." % (current_level_index + 1))
         time.sleep(1.0)

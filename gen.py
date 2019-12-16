@@ -1,6 +1,8 @@
 #!/usr/bin/env python
 # -*- coding:utf-8 -*-
 
+# generator
+
 import multiprocessing as mp
 import os
 import time
@@ -9,20 +11,20 @@ import conf
 
 
 def make_file_dirs(file_path):
-    """为文件创建目录"""
+    """make all file dirs for a full filepath"""
     path = os.path.split(file_path)[0]
     if path and not os.path.exists(path):
         os.makedirs(path)
 
 
 def gen_lang(lang, queue):
-    """生成一个语言数据"""
+    """generate data for a language"""
     try:
         start_time = time.time()
-        print("语言%s: 正在生成..." % lang)
+        print("Lang: %s: generating..." % lang)
 
         def init_words():
-            """单词初始化"""
+            """initialize words"""
             words = []
             dict_filename = "dicts/%s.csv" % lang
             with open(dict_filename) as dict_file:
@@ -43,7 +45,7 @@ def gen_lang(lang, queue):
                     freq += 1
             return words
 
-        # 全部单词, list(str)
+        # list(str)
         all_words = init_words()
 
         def gen_levels(
@@ -57,45 +59,45 @@ def gen_lang(lang, queue):
                 arrange_word_cnt,
                 gen_words_min_len
         ):
-            """根据一个关卡的等级配置生成等级数据"""
+            """generate levels data by a batch of levels generating parameters"""
 
-            # 频率限制
+            # freq limit
             seed_words = all_words[:words_max_freq]
-            # 长度限制
+            # len limit
             seed_words = [
                 (word, i + 1) for i, word in enumerate(seed_words)
                 if seed_word_max_len >= len(word) >= max(3, gen_words_min_len)
             ]
-            # 重复限制
+            # unique limit
             seed_words = [(word, _) for word, _ in seed_words if word not in used_seed_words]
 
             if start_level == 1:
                 headers = [
-                    "批号",
-                    "序号",
-                    "参:最小长度",
-                    "参:最大长度",
-                    "参:词频上限",
-                    "参:猜词数",
-                    "全部词数",
-                    "种子词",
-                    "种子词频率",
-                    "种子词长度",
-                    "其他词总频率",
-                    "其他词总长度",
-                    "频率系数",
-                    "数量系数",
-                    "长度系数",
-                    "难度系数",
-                    "其他词",
+                    "Batch",
+                    "No",
+                    "Param:max length",
+                    "Param:max length",
+                    "Param:max freq",
+                    "Param:guest word count",
+                    "All word count",
+                    "Seed word",
+                    "Seed word freq",
+                    "Seed word len",
+                    "Sum freq of the other words",
+                    "Sum len of the other words",
+                    "Freq factor",
+                    "Count factor",
+                    "Len factor",
+                    "Difficulty",
+                    "The other words",
                 ]
                 output_file.write(",".join(headers) + "\n")
 
             level_count = 0
             need_level_count = end_level - start_level + 1
-            # 频率限制
+            # freq limit
             filtered_words = all_words[:words_max_freq]
-            # 长度限制
+            # len limit
             filtered_words = [
                 (word, i + 1) for i, word in enumerate(filtered_words)
                 if seed_word_max_len >= len(word) >= gen_words_min_len
@@ -123,23 +125,23 @@ def gen_lang(lang, queue):
                 if len(words) + 1 >= arrange_word_cnt:
                     used_seed_words.add(seed_word)
                     output_columns = [
-                        batch_level,  # 批号
-                        start_level + level_count,  # 序号
-                        gen_words_min_len,  # 参:最小长度
-                        seed_word_max_len,  # 参:最大长度
-                        words_max_freq,  # 参:词频上限
-                        arrange_word_cnt,  # 参:猜词数
-                        len(words) + 1,  # 全部词数
-                        seed_word,  # 种子词
-                        seed_word_freq,  # 种子词频率
-                        len(seed_word),  # 种子词长度
-                        sum_freq,  # 其他词总频率
-                        sum(len(word) for word in words),  # 其他词总长度
-                        "",  # 频率系数
-                        "",  # 数量系数
-                        "",  # 长度系数
-                        "",  # 难度系数
-                        ";".join(words),  # 其他词
+                        batch_level,  # Batch
+                        start_level + level_count,  # No
+                        gen_words_min_len,  # Param: max length
+                        seed_word_max_len,  # Param: max length
+                        words_max_freq,  # Param: max freq
+                        arrange_word_cnt,  # Param: guest word count
+                        len(words) + 1,  # All word count
+                        seed_word,
+                        seed_word_freq,
+                        len(seed_word),
+                        sum_freq,  # Sum freq of the other words
+                        sum(len(word) for word in words),  # Sum len of the other words
+                        "",  # Freq factor
+                        "",  # Count factor
+                        "",  # Len factor
+                        "",  # Difficulty
+                        ";".join(words),  # The other words
                     ]
                     output_columns = [str(_) for _ in output_columns]
                     output_file.write(",".join(output_columns) + "\n")
@@ -153,7 +155,7 @@ def gen_lang(lang, queue):
                     if level_count >= need_level_count:
                         break
             assert level_count >= need_level_count, \
-                "关卡[%d-%d]: 只能生成%d个关卡! 请放宽生成等级配置..." % (
+                "Level[%d-%d]: can generate %d level(s) ONLY! Need WIDER generating parameters..." % (
                     start_level, end_level, level_count
                 )
 
@@ -173,15 +175,15 @@ def gen_lang(lang, queue):
                 )
                 last_start_level = levels_conf[0] + 1
         used_time = time.time() - start_time
-        print("语言%s: 生成完成, 用时:%.2f秒." % (lang, used_time))
+        print("Lang: %s: generated in:%.2fs." % (lang, used_time))
         queue.put(True)
     except Exception as e:
-        print("语言%s: 生成异常: %s" % (lang, e))
+        print("Lang: %s: EXCEPTION: %s!" % (lang, e))
         queue.put(False)
 
 
 def main():
-    """全部语言生成"""
+    """generate all languages"""
     pool = mp.Pool()
     queue = mp.Manager().Queue()
     for lang in conf.LANGUAGES:

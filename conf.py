@@ -1,10 +1,10 @@
 #!/usr/bin/env python
 # -*- coding:utf-8 -*-
 
-# 配置
+# configurations for gen.py
 
 
-# 生成语言
+# generating languages
 LANGUAGES = [
     "EN",
     "RU",
@@ -17,10 +17,13 @@ LANGUAGES = [
     "NL",
 ]
 
-# 批次关卡参数
+# batches of levels generating parameters
 LEVELS = [
-    # 结束关卡      最大长度        最小长度
-    #       词频上限        猜词数
+    # end level
+    #       max word freq
+    #               max word len
+    #                       guess word count
+    #                               min word len
     [10,    1500,   3,      3,      2],
     [20,    2000,   4,      4,      2],
     [30,    2500,   5,      5,      3],

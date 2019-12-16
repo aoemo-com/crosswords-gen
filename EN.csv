@@ -1,4 +1,4 @@
-批号,序号,参:最小长度,参:最大长度,参:词频上限,参:猜词数,全部词数,种子词,种子词频率,种子词长度,其他词总频率,其他词总长度,频率系数,数量系数,长度系数,难度系数,其他词
+Batch,No,Param:max length,Param:max length,Param:max freq,Param:guest word count,All word count,Seed word,Seed word freq,Seed word len,Sum freq of the other words,Sum len of the other words,Freq factor,Count factor,Len factor,Difficulty,The other words
 1,2,2,3,1500,3,3,for,5,3,23,4,28,9,12,3024,of;or
 1,5,2,3,1500,3,3,one,36,3,220,4,256,9,12,27648,on;no
 1,6,2,3,1500,3,3,may,61,3,241,4,302,9,12,32616,am;my
