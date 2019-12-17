@@ -149,7 +149,7 @@ while True:
     elif input_line.startswith("/skip"):
         skip_level = 1
         params = input_line[5:].strip().split(" ")
-        if len(params) > 0 and params[0]:
+        if params and params[0]:
             skip_level = int(params[0])
         current_level_index += skip_level
         current_level_index = max(0, current_level_index)
