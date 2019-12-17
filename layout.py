@@ -190,7 +190,7 @@ class CrosswordLayout:
         return [layout.word for layout in self.word_layouts]
 
     def check_and_add_word_layout(self, word, x, y, horizontal, inserted_layout=None):
-        """Check if a word can be layout, and do it if YES"""
+        """Check and layout it if a word can be layout"""
         new_layout = self.WordLayout(word, x, y, horizontal)
 
         if self.have_rect_limit:
@@ -256,7 +256,7 @@ class CrosswordLayout:
                     return False
                 else:
                     passed_layouts.add(layout)
-                    
+
         return True
 
     def layout_word_not_insert(self, word):
@@ -323,13 +323,19 @@ class CrosswordLayout:
 
             for char_index, char in enumerate(word):
                 for layout_char_index, layout_char in enumerate(layout_word):
-                    if char == layout_char:
-                        # Set insertion point base on both indexes
-                        x, y = (left + layout_char_index, top - char_index) if horizontal \
-                            else (left - char_index, top + layout_char_index)
-                        if self.check_and_add_word_layout(
-                                word, x, y, not horizontal, inserted_layout=layout):
-                            return True
+
+                    if char != layout_char:
+                        continue
+
+                    # Set insertion point base on both indexes
+                    if horizontal:
+                        x, y = (left + layout_char_index, top - char_index)
+                    else:
+                        x, y = (left - char_index, top + layout_char_index)
+                    if self.check_and_add_word_layout(
+                            word, x, y, not horizontal, inserted_layout=layout):
+                        return True
+                    
         return False
 
     def do_layout(self):
