@@ -49,13 +49,12 @@ def gen_levels(
         used_seed_words,
         batch_level,
         start_level,
-        end_level,
-        words_max_freq,
-        seed_word_max_len,
-        arrange_word_cnt,
-        gen_words_min_len
+        levels_conf
 ):
     """generate levels data by a batch of levels generating parameters"""
+
+    end_level, words_max_freq, seed_word_max_len, arrange_word_cnt, gen_words_min_len = \
+        levels_conf
 
     # freq limit
     seed_words = all_words[:words_max_freq]
@@ -170,7 +169,7 @@ def gen_lang(lang, queue):
                     used_words,
                     batch + 1,
                     last_start_level,
-                    *levels_conf
+                    levels_conf
                 )
                 last_start_level = levels_conf[0] + 1
         used_time = time.time() - start_time
