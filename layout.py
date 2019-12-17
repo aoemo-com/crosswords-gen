@@ -229,39 +229,34 @@ class CrosswordLayout:
                 IntRect(left + 0, top - 1, right + 0, bottom + 1),
                 IntRect(left - 1, top + 0, right + 1, bottom + 0),
             ]
+
+        inserted = inserted_layout
         # Already layouts' rect CAN NOT intersect with dangerous rects
-        for layout in self.word_layouts:
-            # Skip current being inserted layout
-            if layout is inserted_layout:
-                continue
-            for danger_rect in danger_rects:
-                if layout.rect & danger_rect:
-                    if not inserted_layout:
+        for layout in (_ for _ in self.word_layouts if _ is not inserted):
+            for danger_rect in (_ for _ in danger_rects if layout.rect & _):
+
+                if not inserted:
+                    return False
+
+                if layout.horizontal == horizontal:
+                    # Exception:
+                    #   Like the following, 'as' should connect with 'saw' in char 'a'
+                    #
+                    #   was
+                    #     a
+                    #     w
+                    #
+                    if not (inserted.can_intersect() and
+                            layout.rect & inserted.rect and
+                            layout.rect.intersect(danger_rect).area() == 1):
                         return False
 
-                    # Inserted: same direction
-                    if layout.horizontal == horizontal:
-                        # Exception:
-                        #   Like the following, 'as' should connect with 'saw' in char 'a'
-                        #
-                        #   was
-                        #     a
-                        #     w
-                        #
-                        if not (inserted_layout.can_intersect() and
-                                layout.rect & inserted_layout.rect and
-                                layout.rect.intersect(danger_rect).area() == 1):
-                            return False
-                    # Inserted: reversed direction
-                    else:
-                        # Exception:
-                        if not (
-                                layout.can_intersect() and
-                                # Old layout will intersect new layout with same char
-                                new_layout & layout
-                        ):
-                            return False
-                        passed_layouts.add(layout)
+                # Old layout will intersect new layout with same char
+                elif not (layout.can_intersect() and new_layout & layout):
+                    return False
+                else:
+                    passed_layouts.add(layout)
+                    
         return True
 
     def layout_word_not_insert(self, word):
