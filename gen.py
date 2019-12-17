@@ -25,7 +25,6 @@ def init_words(lang):
     dict_filename = "dicts/%s.csv" % lang
     with open(dict_filename) as dict_file:
         words_set = set()
-        freq = 1
         for line in dict_file:
             word = line.strip().split(",")[0]
             lower_word = word.lower()
@@ -38,7 +37,6 @@ def init_words(lang):
                 continue
             words_set.add(lower_word)
             words.append(lower_word)
-            freq += 1
     return words
 
 
