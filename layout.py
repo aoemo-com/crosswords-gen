@@ -271,7 +271,7 @@ class CrosswordLayout:
         for x, y in self.rect:
             if self.check_and_add_word_layout(word, x, y, horizontal=True) or \
                     self.check_and_add_word_layout(word, x, y, horizontal=False):
-                return True
+                return
 
         # Clock-wisely layout on the outer 4 sides of words' layouts rect
         positions_array = [
@@ -313,7 +313,7 @@ class CrosswordLayout:
                     positions[self.outside_layout_poses[pos_index] % len(positions)]
                 self.outside_layout_poses[pos_index] += 1
                 if self.check_and_add_word_layout(word, x, y, horizontal):
-                    return True
+                    return
         raise self.Error("NOT ENOUGH max_width or max_height!")
 
     def layout_word(self, word):
