@@ -1,10 +1,11 @@
 #!/usr/bin/env python
 # -*- coding:utf-8 -*-
 
-# Crossword Layout
+"""Crossword Layout
+"""
 
 
-class IntRect(object):
+class IntRect:
     """Integer Rectangle, [left, right), [top, bottom)"""
 
     def __init__(self, left=0, top=0, right=1, bottom=1):
@@ -15,13 +16,16 @@ class IntRect(object):
 
     @property
     def width(self):
+        """Return width"""
         return self.right - self.left
 
     @property
     def height(self):
+        """Return height"""
         return self.bottom - self.top
 
     def area(self):
+        """Return area"""
         return self.width * self.height
 
     def __contains__(self, point):
@@ -48,12 +52,11 @@ class IntRect(object):
 
     def __and__(self, other):
         """Test if two rects have intersection or not"""
-        return not (
-                self.right <= other.left or
-                other.right <= self.left or
-                self.bottom <= other.top or
-                other.bottom <= self.top
-        )
+        return not (self.right <= other.left or
+                    other.right <= self.left or
+                    self.bottom <= other.top or
+                    other.bottom <= self.top
+                    )
 
     def intersect(self, other):
         """Return intersection"""
@@ -64,6 +67,7 @@ class IntRect(object):
                 min(self.right, other.right),
                 min(self.bottom, other.bottom)
             )
+        return None
 
     def __iter__(self):
         """Spiral iteration from center to outside"""
@@ -81,14 +85,14 @@ class IntRect(object):
             x, y = x + dx, y + dy
 
 
-class CrosswordLayout(object):
+# pylint: disable=too-many-instance-attributes
+class CrosswordLayout:
     """Crossword Layout"""
 
     class Error(Exception):
         """Error class"""
-        pass
 
-    class WordLayout(object):
+    class WordLayout:
         """Word layout"""
 
         def __init__(self, word, x, y, horizontal):
@@ -125,12 +129,14 @@ class CrosswordLayout(object):
                 x, y = point
                 offset = (x - self.rect.left) if self.horizontal else (y - self.rect.top)
                 return self.word[offset]
+            return None
 
         def __and__(self, other):
             """Test if two layouts intersect with same char or not"""
             common = self.rect.intersect(other.rect)
             return common and self[common.left, common.top] == other[common.left, common.top]
 
+    # pylint: disable=too-many-arguments
     def __init__(
             self,
             layout_count,  # Word count need to be layout
@@ -234,8 +240,9 @@ class CrosswordLayout(object):
                 if layout.rect & danger_rect:
                     if not inserted_layout:
                         return False
+
                     # Inserted: same direction
-                    elif layout.horizontal == horizontal:
+                    if layout.horizontal == horizontal:
                         # Exception:
                         #   Like the following, 'as' should connect with 'saw' in char 'a'
                         #
