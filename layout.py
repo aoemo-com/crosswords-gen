@@ -435,10 +435,5 @@ if __name__ == "__main__":
             level.count,
             level.seed_word,
             level.other_words,
-            # max_width=30,
-            # max_height=20,
         ).print_layout()
     print("finished in %.3fs" % (time.time() - start))
-
-    # level = levels[1]
-    # CrosswordLayout(level.count, level.seed_word, level.other_words).print_layout()
