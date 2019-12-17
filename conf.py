@@ -1,7 +1,8 @@
 #!/usr/bin/env python
 # -*- coding:utf-8 -*-
 
-# Configurations for gen.py
+"""Configurations for gen.py
+"""
 
 
 # generating languages

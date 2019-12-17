@@ -1,11 +1,13 @@
 #!/usr/bin/env python
 # -*- coding:utf-8 -*-
 
-# Generator
+"""Generator
+"""
 
 import multiprocessing as mp
 import os
 import time
+import sys
 
 import conf
 
@@ -67,9 +69,23 @@ def gen_levels(
 
     if start_level == 1:
         headers = [
-            "Batch", "No", "Param:max length", "Param:max length", "Param:max freq", "Param:guest word count",
-            "All word count", "Seed word", "Seed word freq", "Seed word len", "Sum freq of the other words",
-            "Sum len of the other words", "Freq factor", "Count factor", "Len factor", "Difficulty", "The other words",
+            "Batch",
+            "No",
+            "Param:max length",
+            "Param:max length",
+            "Param:max freq",
+            "Param:guest word count",
+            "All word count",
+            "Seed word",
+            "Seed word freq",
+            "Seed word len",
+            "Sum freq of the other words",
+            "Sum len of the other words",
+            "Freq factor",
+            "Count factor",
+            "Len factor",
+            "Difficulty",
+            "The other words",
         ]
         output_file.write(",".join(headers) + "\n")
 
@@ -105,17 +121,13 @@ def gen_levels(
         if len(words) + 1 >= arrange_word_cnt:
             used_seed_words.add(seed_word)
             output_columns = [
-                batch_level,  # Batch
-                start_level + level_count,  # No
-                gen_words_min_len,  # Param: max length
-                seed_word_max_len,  # Param: max length
-                words_max_freq,  # Param: max freq
-                arrange_word_cnt,  # Param: guest word count
-                len(words) + 1,  # All word count
+                batch_level, start_level + level_count,
+                gen_words_min_len, seed_word_max_len, words_max_freq,
+                arrange_word_cnt, len(words) + 1,
                 seed_word, seed_word_freq, len(seed_word),
-                sum_freq,  sum(len(word) for word in words),
+                sum_freq, sum(len(word) for word in words),
                 "", "", "", "",
-                ";".join(words),  # The other words
+                ";".join(words),
             ]
             output_columns = [str(_) for _ in output_columns]
             output_file.write(",".join(output_columns) + "\n")
@@ -178,7 +190,7 @@ def main():
     pool.close()
     for _ in range(len(conf.LANGUAGES)):
         if not queue.get():
-            exit(1)
+            sys.exit(1)
     pool.join()
 
 

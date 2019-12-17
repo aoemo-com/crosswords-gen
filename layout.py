@@ -85,7 +85,6 @@ class IntRect:
             x, y = x + dx, y + dy
 
 
-# pylint: disable=too-many-instance-attributes
 class CrosswordLayout:
     """Crossword Layout"""
 
@@ -136,7 +135,6 @@ class CrosswordLayout:
             common = self.rect.intersect(other.rect)
             return common and self[common.left, common.top] == other[common.left, common.top]
 
-    # pylint: disable=too-many-arguments
     def __init__(
             self,
             layout_count,  # Word count need to be layout

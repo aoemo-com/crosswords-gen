@@ -1,7 +1,8 @@
 #!/usr/bin/env python
 # -*- coding:utf-8 -*-
 
-# Convert keyboard languages' dictionary
+"""Convert keyboard languages' dictionary
+"""
 
 import json
 import string

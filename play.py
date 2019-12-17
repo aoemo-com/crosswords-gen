@@ -1,7 +1,8 @@
 #!/usr/bin/env python
 # -*- coding:utf-8 -*-
 
-# Simulator for game play
+"""Simulator for game play
+"""
 
 from collections import namedtuple
 import random
@@ -50,7 +51,7 @@ with open(LEVELS_FILE_PATH) as levels_file:
         words = layout.layout_words()
         all_words = [seed_word] + other_words
         bonus_words = [word for word in all_words if word not in words]
-        chars = [char for char in seed_word]
+        chars = list(seed_word)
         random.shuffle(chars)
         all_levels.append(
             Level(level, chars, words, bonus_words, layout, [], [])
@@ -70,6 +71,7 @@ while True:
     def change_case(word):
         """change word case by current case"""
         return word.upper() if case == "upper" else word.lower()
+
 
     def print_level():
         """print current level information"""
@@ -116,14 +118,18 @@ while True:
 
     input_word = input_line.lower()
     # word matched
-    if input_word in current_level.words and input_word not in current_level.finished_words:
+    if input_word in current_level.words and \
+            input_word not in current_level.finished_words:
         current_level.finished_words.append(input_word)
         if len(current_level.finished_words) >= len(current_level.words):
             print_level()
-            input_func("Level %d pass!\nNext level...press ENTER to continue..." % (current_level_index + 1))
+            input_func(
+                "Level %d pass!\n"
+                "Next level...press ENTER to continue..." % (current_level_index + 1))
             current_level_index += 1
     # bonus word matched
-    elif input_word in current_level.bonus_words and input_word not in current_level.finished_bonus_words:
+    elif input_word in current_level.bonus_words and \
+            input_word not in current_level.finished_bonus_words:
         current_level.finished_bonus_words.append(input_word)
     elif input_line == "?":
         print("")
