@@ -176,11 +176,8 @@ class CrosswordLayout:
 
         # Clock-wisely layout poses on the outer 4 sides of words' layouts rect
         # 0.same direction:
-        #   horizontal layouts horizontally, vertical layouts vertically, connected to rect
         # 1.same direction:
-        #   horizontal layouts horizontally, vertical layouts vertically, NOT connected to rect
         # 2.reversed direction:
-        #   horizontal layouts vertically, vertical layouts horizontally, NOT connected to rect
         self.outside_layout_poses = [0, 0, 0]
 
         self.do_layout()
@@ -219,6 +216,19 @@ class CrosswordLayout:
         horizontal = new_layout.horizontal
 
         # Dangerous rects for new layout
+        #                   +--> danger_rect1
+        #       (0,-1)      |
+        #         +---------+------+
+        #         |                |
+        # (-1,0)  |                |
+        #    +----+----------------+----+
+        #    |    |                |    +-----> danger_rect0
+        #    |    |                |    |
+        #    +----+----------------+----+
+        #         |                |     (+1,0)
+        #         |                |
+        #         +----------------+
+        #                          (0,+1)
         if horizontal:
             danger_rects = [
                 IntRect(left - 1, top + 0, right + 1, bottom + 0),
@@ -272,6 +282,18 @@ class CrosswordLayout:
         positions_array = [
             # 0.same direction:
             #   horizontal layouts horizontally, vertical layouts vertically, connected to rect
+            #
+            #     0               1
+            #     +--->           +--->
+            #
+            # 7+  +--------------------+2
+            #  |  |                    |
+            #  v  |                    v
+            #     |                    |
+            # 6+  |                    +3
+            #  |  |                    |
+            #  v  +---->----------+--->v
+            #     5               4
             [
                 (self.rect.left, self.rect.top - 1, True),
                 (self.rect.right - len(word), self.rect.top - 1, True),
@@ -285,8 +307,21 @@ class CrosswordLayout:
                 (self.rect.left - 1, self.rect.bottom - len(word), False),
                 (self.rect.left - 1, self.rect.top, False),
             ],
+
             # 1.same direction:
             #   horizontal layouts horizontally, vertical layouts vertically, NOT connected to rect
+            #     0
+            #     +---->
+            #                             1
+            # 3+  +--------------------+  +
+            #  |  |                    |  |
+            #  |  |                    |  |
+            #  v  |                    |  v
+            #     |                    |
+            #     |                    |
+            #     +--------------------+
+            #     2
+            #     +----->
             [
                 (self.rect.left, self.rect.top - 2, True),
                 (self.rect.right + 1, self.rect.top, False),
@@ -295,6 +330,23 @@ class CrosswordLayout:
             ],
             # 2.reversed direction:
             #   horizontal layouts vertically, vertical layouts horizontally, NOT connected to rect
+            #            + 0
+            #            |
+            #            |
+            #            v
+            # 3                                  1
+            #  +----->   +--------------------+  +---->
+            #            |                    |
+            #            |                    |
+            #            |                    |
+            #            |                    |
+            #            |                    |
+            #            +--------------------+
+            #            2
+            #            +
+            #            |
+            #            |
+            #            v
             [
                 (self.rect.left, self.rect.top - 1 - len(word), False),
                 (self.rect.right + 1, self.rect.top, True),
@@ -335,7 +387,7 @@ class CrosswordLayout:
                     if self.check_and_add_word_layout(
                             word, x, y, not horizontal, inserted_layout=layout):
                         return True
-                    
+
         return False
 
     def do_layout(self):
@@ -348,6 +400,26 @@ class CrosswordLayout:
         ):
             raise self.Error("NOT ENOUGH max_width or max_height!")
 
+        # +--------------------------25
+        # |                           |
+        # |               a           |
+        # |             c c c         |
+        # |      consideration        |
+        # |      a o  i e i n   i     |
+        # | reason t  n d o t   n     |
+        # |      n i  n i n a   s     |
+        # |      o c  e t   i   t     |
+        # | direct e  r   consider    |
+        # |               o  e  a     |
+        # |               n  c  d     |
+        # |               t  o        |
+        # |               a  n        |
+        # |          certain decision |
+        # |               n           |
+        # |              section      |
+        # |               d           |
+        # |                           |
+        # 16--------------------------+
         left_words = self.words[1:]
         while len(left_words) > len(self.words) - self.layout_count:
             # Find and layout a insert-able word in words
