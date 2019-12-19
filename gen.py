@@ -106,9 +106,9 @@ def gen_levels(
         sum_freq = 0
         seed_word_chars_count = {char: seed_word.count(char) for char in seed_word}
 
-        for word, freq in filtered_words:
-            if word == seed_word:
-                continue
+        for word, freq in (
+                (_word, _freq) for _word, _freq in filtered_words if _word != seed_word
+        ):
             word_chars_count = filtered_words_chars_count[word]
             if all(seed_word_chars_count.get(char, 0) >= count
                    for char, count in word_chars_count.items()):
