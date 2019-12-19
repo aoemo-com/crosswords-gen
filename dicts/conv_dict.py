@@ -39,8 +39,7 @@ for line in open(DICT_INPUT_FILE):
                 invalid_chars[char.lower()] = invalid_chars.get(char.lower(), 0) + 1
                 invalid_char_found = True
         if not invalid_char_found:
-            freq = int(columns[1][2:])
-            output_file.write("%s,%d\n" % (word, freq))
+            output_file.write("%s\n" % word)
             count += 1
 
 print(pretty_dumps(invalid_chars))
