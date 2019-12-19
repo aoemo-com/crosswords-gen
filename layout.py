@@ -373,20 +373,21 @@ class CrosswordLayout:
             horizontal = layout.horizontal
             left, top = layout.rect.left, layout.rect.top
 
-            for char_index, char in enumerate(word):
-                for layout_char_index, layout_char in enumerate(layout_word):
-
-                    if char != layout_char:
-                        continue
-
-                    # Set insertion point base on both indexes
-                    if horizontal:
-                        x, y = (left + layout_char_index, top - char_index)
-                    else:
-                        x, y = (left - char_index, top + layout_char_index)
-                    if self.check_and_add_word_layout(
-                            word, x, y, not horizontal, inserted_layout=layout):
-                        return True
+            both_indexes = (
+                (char_index, layout_char_index)
+                for char_index, char in enumerate(word)
+                for layout_char_index, layout_char in enumerate(layout_word)
+                if char == layout_char
+            )
+            for char_index, layout_char_index in both_indexes:
+                # Set insertion point base on both indexes
+                if horizontal:
+                    x, y = (left + layout_char_index, top - char_index)
+                else:
+                    x, y = (left - char_index, top + layout_char_index)
+                if self.check_and_add_word_layout(
+                        word, x, y, not horizontal, inserted_layout=layout):
+                    return True
 
         return False
 
