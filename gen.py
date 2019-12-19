@@ -100,66 +100,60 @@ def gen_levels(
         } for word, _ in filtered_words
     }
 
-    def gen_levels_internal():
-        """generate levels internal"""
+    current_level = start_level
+    for seed_word, seed_word_freq in seed_words:
+        words = []
+        sum_freq = 0
+        seed_word_chars_count = {char: seed_word.count(char) for char in seed_word}
 
-        current_level = start_level
+        for word, freq in filtered_words:
+            if word == seed_word:
+                continue
+            word_chars_count = filtered_words_chars_count[word]
+            if all(seed_word_chars_count.get(char, 0) >= count
+                   for char, count in word_chars_count.items()):
+                words.append(word)
+                sum_freq += freq
 
-        for seed_word, seed_word_freq in seed_words:
-            words = []
-            sum_freq = 0
-            seed_word_chars_count = {char: seed_word.count(char) for char in seed_word}
+        if len(words) + 1 >= arrange_word_cnt:
+            used_seed_words.add(seed_word)
+            output_file.write(",".join(
+                "%s" % _ for _ in [
+                    batch_level,
+                    current_level,
+                    gen_words_min_len,
+                    seed_word_max_len,
+                    words_max_freq,
+                    arrange_word_cnt,
+                    len(words) + 1,
+                    seed_word,
+                    seed_word_freq,
+                    len(seed_word),
+                    sum_freq,
+                    sum(len(word) for word in words),
+                    "", "", "", "",
+                    ";".join(words),
+                ]
+            ) + "\n")
+            print("\t".join(
+                [
+                    lang,
+                    str(batch_level),
+                    str(current_level),
+                    seed_word
+                ] + words
+            ))
+            if current_level >= end_level:
+                break
+            current_level += 1
 
-            for word, freq in filtered_words:
-                if word == seed_word:
-                    continue
-                word_chars_count = filtered_words_chars_count[word]
-                if all(seed_word_chars_count.get(char, 0) >= count
-                       for char, count in word_chars_count.items()):
-                    words.append(word)
-                    sum_freq += freq
-
-            if len(words) + 1 >= arrange_word_cnt:
-                used_seed_words.add(seed_word)
-                output_file.write(",".join(
-                    "%s" % _ for _ in [
-                        batch_level,
-                        current_level,
-                        gen_words_min_len,
-                        seed_word_max_len,
-                        words_max_freq,
-                        arrange_word_cnt,
-                        len(words) + 1,
-                        seed_word,
-                        seed_word_freq,
-                        len(seed_word),
-                        sum_freq,
-                        sum(len(word) for word in words),
-                        "", "", "", "",
-                        ";".join(words),
-                    ]
-                ) + "\n")
-                print("\t".join(
-                    [
-                        lang,
-                        str(batch_level),
-                        str(current_level),
-                        seed_word
-                    ] + words
-                ))
-                if current_level >= end_level:
-                    break
-                current_level += 1
-
-        if current_level < end_level:
-            raise Exception(
-                "Level[%d-%d]: can generate %d level(s) ONLY! "
-                "Need WIDER generating parameters..." % (
-                    start_level, end_level, current_level - start_level
-                )
+    if current_level < end_level:
+        raise Exception(
+            "Level[%d-%d]: can generate %d level(s) ONLY! "
+            "Need WIDER generating parameters..." % (
+                start_level, end_level, current_level - start_level
             )
-
-    gen_levels_internal()
+        )
 
 
 def gen_lang(lang, queue):

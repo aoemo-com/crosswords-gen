@@ -243,9 +243,9 @@ class CrosswordLayout:
         inserted = inserted_layout
         # Already layouts' rect CAN NOT intersect with dangerous rects
         for layout, danger_rect in (
-            (_layout, _danger_rect)
-            for _layout in self.word_layouts if _layout is not inserted
-            for _danger_rect in danger_rects if _layout.rect & _danger_rect
+                (_layout, _danger_rect)
+                for _layout in self.word_layouts if _layout is not inserted
+                for _danger_rect in danger_rects if _layout.rect & _danger_rect
         ):
             if not inserted:
                 return False
